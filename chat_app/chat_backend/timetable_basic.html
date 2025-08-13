@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raghavendra's Timetable</title>
+    <style>
+        /* General Styling */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+        :root {
+            --font-family: 'Poppins', sans-serif;
+            --bg-color: #e9ecef; /* Light grey background */
+            --table-bg: #ffffff;
+            --header-bg: #343a40; /* Dark grey header */
+            --header-text: #ffffff;
+            --border-color: #dee2e6;
+            --text-color: #212529;
+            --lunch-bg: #f8f9fa;
+            --current-time-highlight: rgba(255, 229, 100, 0.4);
+            --current-day-highlight: #f0f0f0;
+            --current-class-glow: 0 0 10px rgba(251, 191, 36, 0.6);
+
+            /* Subject Colors */
+            --color-cn: #007bff; /* Blue */
+            --color-os: #28a745; /* Green */
+            --color-ml: #6f42c1; /* Purple */
+            --color-cd: #fd7e14; /* Orange */
+            --color-ob: #17a2b8; /* Cyan */
+            --color-lab: #6c757d; /* Grey */
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .timetable-container {
+            width: 95%;
+            max-width: 1100px;
+            background-color: var(--table-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.75rem;
+            font-weight: 600;
+            padding: 1rem;
+            margin: 0;
+            background-color: var(--header-bg);
+            color: var(--header-text);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            padding: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s ease;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        td.time-slot {
+            font-weight: 500;
+            background-color: #f0f0f0;
+            white-space: nowrap;
+            font-size: 0.85rem;
+        }
+
+        /* Subject Cell Styling */
+        .class-cell {
+            color: white;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            padding: 0.6rem;
+        }
+        
+        .class-cell:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            z-index: 10;
+        }
+
+        .class-cell .subject {
+            display: block;
+            font-size: 0.9rem;
+        }
+
+        .class-cell .code {
+            display: block;
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+
+        /* Color Assignments */
+        .class-cn { background-color: var(--color-cn); }
+        .class-os { background-color: var(--color-os); }
+        .class-ml { background-color: var(--color-ml); }
+        .class-cd { background-color: var(--color-cd); }
+        .class-ob { background-color: var(--color-ob); }
+        .class-lab { background-color: var(--color-lab); }
+
+        .lunch-break td {
+            background-color: var(--lunch-bg);
+            font-weight: 500;
+            color: #6c757d;
+            font-style: italic;
+            padding: 0.6rem;
+        }
+
+        /* Live Highlighting */
+        .current-day {
+            background-color: var(--current-day-highlight);
+        }
+        tr.current-time {
+            background-color: var(--current-time-highlight);
+        }
+        td.current-class {
+            box-shadow: var(--current-class-glow);
+            transform: scale(1.03);
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            background-color: #f8f9fa;
+            font-size: 0.8rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            body {
+                padding: 0.5rem;
+            }
+            h1 {
+                font-size: 1.4rem;
+            }
+            th, td {
+                padding: 0.5rem;
+                font-size: 0.75rem;
+            }
+            td.time-slot {
+                font-size: 0.8rem;
+            }
+            .class-cell .subject {
+                font-size: 0.75rem;
+            }
+            .class-cell .code {
+                font-size: 0.65rem;
+            }
+            .legend {
+                gap: 0.75rem;
+                padding: 0.75rem;
+            }
+            .legend-item {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="timetable-container">
+    <h1>Raghavendra's Timetable</h1>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th class="time-header">Time</th>
+                    <th data-day="1">Monday</th>
+                    <th data-day="2">Tuesday</th>
+                    <th data-day="3">Wednesday</th>
+                    <th data-day="4">Thursday</th>
+                    <th data-day="5">Friday</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-start="08:00" data-end="08:50">
+                    <td class="time-slot">08:00 - 08:50</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <tr data-start="09:00" data-end="09:50">
+                    <td class="time-slot">09:00 - 09:50</td>
+                    <td class="class-cell class-cn"><span class="subject">Computer Networks</span><span class="code">(A)</span></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="class-cell class-ml"><span class="subject">Machine Learning</span><span class="code">(E)</span></td>
+                </tr>
+                <tr data-start="10:00" data-end="10:50">
+                    <td class="time-slot">10:00 - 10:50</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="class-cell class-ml"><span class="subject">Machine Learning</span><span class="code">(E)</span></td>
+                    <td class="class-cell class-cn"><span class="subject">Computer Networks</span><span class="code">(A)</span></td>
+                </tr>
+                <tr data-start="11:00" data-end="11:50">
+                    <td class="time-slot">11:00 - 11:50</td>
+                    <td></td>
+                    <td class="class-cell class-ml"><span class="subject">Machine Learning</span><span class="code">(E)</span></td>
+                    <td></td>
+                    <td class="class-cell class-cn"><span class="subject">Computer Networks</span><span class="code">(A)</span></td>
+                    <td></td>
+                </tr>
+                <tr data-start="12:00" data-end="12:50">
+                    <td class="time-slot">12:00 - 12:50</td>
+                    <td class="class-cell class-cd"><span class="subject">Compiler Design</span><span class="code">(F)</span></td>
+                    <td class="class-cell class-ob"><span class="subject">Organizational Behaviour</span><span class="code">(G)</span></td>
+                    <td class="class-cell class-cd"><span class="subject">Compiler Design</span><span class="code">(F)</span></td>
+                    <td class="class-cell class-ob"><span class="subject">Organizational Behaviour</span><span class="code">(G)</span></td>
+                    <td class="class-cell class-cd"><span class="subject">Compiler Design</span><span class="code">(F)</span></td>
+                </tr>
+                <tr class="lunch-break" data-start="12:50" data-end="14:30">
+                    <td class="time-slot">12:50 - 14:00</td>
+                    <td colspan="5">Lunch Break</td>
+                </tr>
+                <tr data-start="14:30" data-end="15:50">
+                    <td class="time-slot">14:00 - 14:50</td>
+                    <td></td>
+                    <td class="class-cell class-lab"><span class="subject">IS Lab(14:00 - 17:00)</span><span class="code">(Q1)</span></td>
+                    <td class="class-cell class-ob"><span class="subject">Organizational Behaviour</span><span class="code">(G)</span></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr data-start="16:00" data-end="17:00">
+                    <td class="time-slot">16:00 - 17:00</td>
+                    <td></td>
+                    <td></td>
+                    <td class="class-cell class-os"><span class="subject">Operating Systems</span><span class="code">(D)</span></td>
+                    <td class="class-cell class-os"><span class="subject">Operating Systems</span><span class="code">(D)</span></td>
+                    <td class="class-cell class-os"><span class="subject">Operating Systems</span><span class="code">(D)</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="legend">
+        <div class="legend-item"><span class="legend-color" style="background-color: var(--color-cn);"></span> Computer Networks (A)</div>
+        <div class="legend-item"><span class="legend-color" style="background-color: var(--color-os);"></span> Operating Systems (D)</div>
+        <div class="legend-item"><span class="legend-color" style="background-color: var(--color-ml);"></span> Machine Learning (E)</div>
+        <div class="legend-item"><span class="legend-color" style="background-color: var(--color-cd);"></span> Compiler Design (F)</div>
+        <div class="legend-item"><span class="legend-color" style="background-color: var(--color-ob);"></span> Organizational Behaviour (G)</div>
+        <div class="legend-item"><span class="legend-color" style="background-color: var(--color-lab);"></span> IS Lab (Q1)</div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        // Add border-radius to class cells for better aesthetics
+        const classCells = document.querySelectorAll('.class-cell');
+        classCells.forEach(cell => {
+            if(cell.innerHTML.trim() !== '') {
+                cell.style.borderRadius = '6px';
+            }
+        });
+
+        function highlightCurrentTime() {
+            const now = new Date(); // This uses the user's actual current time
+
+            const day = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const currentTime = `${hours}:${minutes}`;
+            
+            // Remove previous highlights
+            document.querySelectorAll('.current-day, .current-time, .current-class').forEach(el => {
+                el.classList.remove('current-day', 'current-time', 'current-class');
+            });
+            
+            // Highlight ONLY the header of the current day
+            const dayHeader = document.querySelector(`th[data-day="${day}"]`);
+            if (dayHeader) {
+                dayHeader.classList.add('current-day');
+            }
+            
+            // Highlight current time row and specific class cell
+            const timeRows = document.querySelectorAll('tr[data-start]');
+            timeRows.forEach(row => {
+                const start = row.dataset.start;
+                const end = row.dataset.end;
+
+                if (currentTime >= start && currentTime < end) {
+                    row.classList.add('current-time');
+                    
+                    // Highlight the specific class cell for the current class
+                    const classCell = row.querySelector(`td:nth-child(${day + 1})`);
+                    if (classCell && classCell.classList.contains('class-cell')) {
+                        classCell.classList.add('current-class');
+                    }
+                }
+            });
+        }
+
+        // Run on load and then every 30 seconds
+        highlightCurrentTime();
+        setInterval(highlightCurrentTime, 30000);
+    });
+</script>
+
+</body>
+</html>
